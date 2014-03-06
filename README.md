@@ -9,7 +9,7 @@ may not be finished: the vulnerability was a result, in part, of the
 vendor's reliance on an XML Transform or "stylesheet" provided by HL7 as an
 accompaniement to the C-CDA specification, which means...
 
-## Other EHR vendors: you might be affected too!
+## Other EHR vendors may be affected too
 
 It's very likely that other vendor products are affected, so if your product
 displays C-CDA documents as HTML, please have somone from your security team
