@@ -1,0 +1,15 @@
+body {
+  padding-top: 50px;
+}
+.starter-template {
+  padding: 40px 15px;
+}
+
+iframe {
+  margin-top: 2px;
+  margin-bottom: 2em;
+}
+
+#iframeurl {
+  font-family: "Courier New", Courier, monospace;
+}
