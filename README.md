@@ -16,7 +16,7 @@ displays C-CDA documents as HTML, please have somone from your security team
 review this post-mortem, understand the risks, and ensure that the proposed
 fixes are in place.
 
-## The Vulnerabiliy: view a document, experience a massive data breach
+## The Vulnerabiliy: view a document, experience a data breach
 
 The short story is: Friendly Web EHR's C-CDA viewer was vulnerable to
 cross-site scripting attacks. If a clinical user merely *viewed* a malicous
