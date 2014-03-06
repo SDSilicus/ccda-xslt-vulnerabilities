@@ -1,6 +1,6 @@
 ### TL;DR: If you're using XSLT stylesheets to render C-CDAs in your EHR, make sure you understand the security implications. Otherwise you could be looking at a *massive* data breach.
 
-##  This is real and timely
+## Vulnerabilty report
 
 Last week I discovered a security vulnerability in a **well-known commericial
 EHR product** that I'll pseudonomously call "Friendly Web EHR". I reported it
@@ -35,7 +35,7 @@ might theoretically use stolen session tokens to:
 
 ## See it in action
 
-If you like to learn by poking under the covers, then poke around...
+If you like to learn by poking under the covers, then poke around this re-enactment...
 
 * source @ https://github.com/chb/ccda-xslt-vulnerabilities
 * demo @ https://chb.github.io/ccda-xslt-vulnerabilities
