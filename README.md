@@ -1,6 +1,4 @@
-### TL;DR: If you're using XSLT stylesheets to render C-CDAs in your EHR, make
-sure you understand the security implications. Otherwise you could be looking
-at a *massive* data breach.
+### TL;DR: If you're using XSLT stylesheets to render C-CDAs in your EHR, make sure you understand the security implications. Otherwise you could be looking at a *massive* data breach.
 
 ##  This is real and timely
 
