@@ -25,10 +25,10 @@ steal the user's EHR session tokens, and relay them to a third party.
 
 Let me say that again: simply viewing a document could cause a clinician to
 leak full EHR priviliges to a remote third party attacker. The attacker could
-then proceed to downlad data about any patient in the practice.  And worse yet,
+then proceed to download data about any patient in the practice.  And worse yet,
 a clever attacker might chain this vulnerability into a **viral vector** that could
 spread across practices: by leveraging Friendly Web EHR's internal API, the attacker
-could use stolen session tokens to:
+might theoretically use stolen session tokens to:
 
 1. Fetch all contacts from a user's address book
 2. Spam all contacts with a referral note that included an infected C-CDA document 
@@ -38,7 +38,7 @@ could use stolen session tokens to:
 If you like to learn by poking under the covers, then poke around...
 
 * source @ https://github.com/chb/ccda-xslt-vulnerabilities
-* demo @ https://chb.github.io/ccda-xslt-vulnerabilities/
+* demo @ https://chb.github.io/ccda-xslt-vulnerabilities
 
 ## Two fundamental attacks
 
@@ -105,7 +105,7 @@ careful about creating new elements. There are a few programmatic calls to
 We'll have to think outside of the box...
 
 Well, there are various ways to execute JavaScript within a Web page -- and
-they include `onmouseover` attributes`. Looking through attribute handling, we
+they include `onmouseover` attributes. Looking through attribute handling, we
 see a highly permissive "copy all" strategy applied to the attributes on a table:
 
 ```
@@ -135,9 +135,9 @@ something like:
   document.body.appendChild(i);"></table>
 ```
 
-Well, that's a good start but it'll only ever work if the user moves the mouse
+That's a good start but it'll only ever work if the user moves the mouse
 over what could be a small, isolated table in the C-CDA document. Let's fix
-that by applying some styles:
+that with some snazzy styling:
 
 ```
 <table style="height: 100%;
@@ -150,23 +150,23 @@ that by applying some styles:
 ```
 
 Now our infected table covers the entire document area, so moving the mouse
-anywhere within the document will cause our code to run. That's a pretty good
-start. If you'd like, check out these tricks [in
+anywhere within the document will cause our code to run. That's more like it!
+You may want to [check out these tricks in
 action](https://chb.github.io/chb/ccda-xslt-vulnerabilities).
 
 ## How do protect yourself: a defense-in-depth approach
 
 There are many, many ways to defend against an attack like this. In one sense,
-it's not at all hard. But mistakes can be subtle, and extremely helpful to
-think about protecting yourself in a systematic way. By thinking
-systematically, you can help preventing not just the attacks that you're
+it's not at all hard. But mistakes can be subtle, so it's extremely valuable to
+protect yourself in a systematic way. By thinking
+systematically, you can help prevent not only the attacks that you're
 imaginitive enough to foresee, but others, too.
 
 We'll discuss strategies to:
 
 1. Keep bad documents out
 2. If bad documents get in, prevent them from running code in the browser
-3. If bad document run code in the browser, ensure they can't steal critical application state like security tokens
+3. If bad documents run code in the browser, ensure they can't steal critical application state like security tokens
 4. If bad documents steal security tokens, limit the damage
 
 ### Keep bad documents out
@@ -197,8 +197,8 @@ wouldn't have been vulnerable to attack #2 as above.
 The next line of defense is to ensure that bad documents can't do bad things,
 even if they do make it into our system. There are two key recommendations here:
 
-1. Fix us the XSLT. Specifically: prevent blindly copying "all attributes" when
-   rendering tables, and consider blocking external images as well.
+1. Fix up the XSLT. Specifically: augment it to prevent blindly copying "all attributes" when
+   rendering tables, and consider blocking external images as well).
 
 2. Load the rendered C-CDA inside `<iframe SANDBOX="">` to prevent any
    JavaScript from running. This won't work on all browsers, but it provides an
@@ -223,26 +223,27 @@ use the `httpOnly` flag, and `secure` for good measure).
 
  * **No shared origin with the parent frame**. If your `iframe` share its
    origin with the parent frame, then any code running within the `iframe` has
-full access to the application state of the parent frame. This is dangerous!
+full access to the application state of the parent frame. This is dangerous! (
+(See the effect of a compromise in  [the demo](https://chb.github.io/chb/ccda-xslt-vulnerabilities).) 
 It's safer to load the C-CDA viewer in its own origin, where it simply can't
 "see" the surrounding application. Better still, ensure that the C-CDA viewer
 does not share a subdomain with the parent window, to ensure there is not even
-an opportunity for shared cookies.
+an opportunity for shared cookies. 
 
 ### Limit the damage of exposed tokens
 
-If all else fails, we can at least limit the damage of leaked tokens. At this
-point we're probably dealing with a breach of protected health information, but
+If all else fails, we can endeavor to limit the damage from leaked tokens. At this
+point we're already dealing with a breach of protected health information, but
 a small breach is much, much better than a massive one.  In this category we
 have approaches like:
 
  * Bind sessions to end-user IP addresses, or at least geographical regions. If
-   an attacker does steal a session token, we can at least ensure that it can't
-be used to pull patient data directly to a remote sever.  Keep in mind that
-this isn't an iron-clad fix. An attacker can always hijack the end-user's
+   an attacker does steal a session token, we can still prevent the wholesale
+   exposure of patient data directly to a remote sever.  Keep in mind that
+this isn't an ircon-clad fix. An attacker can always hijack the end-user's
 browser to execute and proxy arbitrary HTTP requests. For a vivid depiction of
 how bad things can get, and how fast, see Krzysztof Kotowicz's [detailed blog
-post](http://blog.kotowicz.net/2013/12/rapportive-xsses-gmail-or-have-yourself.html)
+post](http://blog.kotowicz.net/2013/12/rapportive-xsses-gmail-or-have-yourself.html) (and especially the video!)
 describing the exploitation of a vulnerability in the
 [Rapportive](https://rapportive.com/) Chrome extension.
 
