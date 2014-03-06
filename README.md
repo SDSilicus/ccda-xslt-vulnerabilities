@@ -9,14 +9,14 @@ may not be finished: the vulnerability was a result, in part, of the
 vendor's reliance on an XML Transform or "stylesheet" provided by HL7 as an
 accompaniment to the C-CDA specification, which means...
 
-## Other EHR vendors may be affected too
+### Other EHR vendors may be affected too
 
 It's very likely that other vendor products are affected, so if your product
 displays C-CDA documents as HTML, please have somone from your security team
 review this post-mortem, understand the risks, and ensure that the proposed
 fixes are in place.
 
-## View a document → suffer a data breach
+### View a document → suffer a data breach
 
 The short story is: Friendly Web EHR's C-CDA viewer was vulnerable to
 cross-site scripting attacks. If a clinical user merely *viewed* a malicous
@@ -25,22 +25,26 @@ steal the user's EHR session tokens, and relay them to a third party.
 
 Let me say that again: simply viewing a document could cause a clinician to
 leak full EHR priviliges to a remote third party attacker. The attacker could
-then proceed to download data about any patient in the practice.  And worse yet,
-a clever attacker might chain this vulnerability into a **viral vector** that could
-spread across practices: by leveraging Friendly Web EHR's internal API, the attacker
-might theoretically use stolen session tokens to:
+then proceed to download data about any patient in the practice.
+
+#### This kind of thing can get bad *fast*
+I didn't see this specific problem with Friendly Web EHR, but a clever attacker
+might chain this kind of vulnerability into a **viral vector** that could
+spread across practices: by manipulating a vendor's internal API, the attacker
+might use stolen session tokens to:
 
 1. Fetch all contacts from a user's address book
-2. Spam all contacts with a referral note that included an infected C-CDA document 
+2. Spam all contacts with a referral note or Direct message that included an infected C-CDA document 
+3. Harvest vast amounts of protected health information
 
-## See it in action
+### See it in action
 
 If you like to learn by poking under the covers, then poke around this re-enactment...
 
 * source @ https://github.com/chb/ccda-xslt-vulnerabilities
 * demo @ https://chb.github.io/ccda-xslt-vulnerabilities
 
-## Two fundamental attacks
+### Two fundamental attacks
 
 Many vendors appear to be using (slightly modified) versions of the
 [CDA.xsl](https://github.com/chb/sample_ccdas/blob/master/CDA.xsl) that comes
@@ -55,7 +59,7 @@ malacious C-CDA. We'll discuss both in detail:
 2. Contrive to execute JavaScript code anytime the C-CDA is loaded (cross-site
    scripting).
 
-### Leaking application state through externally loaded images
+#### Leaking application state through externally loaded images
 
 Searching CDA.xsl for the term `img`, we see there are two places where this
 stylesheet can output image tags. Both occur within the `renderMultiMedia`
@@ -96,7 +100,7 @@ the template above, we can cause the browser to leak the current page URL to
 </entry>
 ```
 
-### Executing arbitrary JavaScript from a C-CDA document
+#### Executing arbitrary JavaScript from a C-CDA document
 
 Where else can we look for weaknesses? Well, it would be "nice" to find a way
 to get a `script` tag inserted in the rendered document, but the XSLT is pretty
@@ -189,7 +193,7 @@ Schemas validity error:
 
 That's certainly a good start -- and if Friendly Web EHR had done something
 like this before passing a C-CDA document into an XSL transform process, they
-wouldn't have been vulnerable to attack #2 as above.
+wouldn't have been vulnerable to attack #2 as described above.
 
 
 ### Prevent documents from running code or loading external images
@@ -250,3 +254,18 @@ describing the exploitation of a vulnerability in the
  * Monitor access patterns in realtime, and respond to anomolous behavior. Too
    many requests using a given access token, over too short a period of time,
 for example, should trigger session expiration and user account locking.
+
+
+## Bugs happen. Be prepared!
+
+In any complex system, bugs -- including security vulnerabilities -- are a fact of life.
+But an important part of being prepared is having a well-defined channel for 
+security researchers, concerned citizens, and others to reach out
+and report what they find. This could take the form of:
+
+ * Bug Bounty or "Whitehat" program like [Facebook's](https://www.facebook.com/whitehat)
+ * Well-defined vulnerability reporting page like [Twitter's](https://support.twitter.com/forms/security)
+
+These programs sometimes award fame, or cash -- but they key point is that they provide 
+a single "right way" to report issues.  Here's a [whole list of programs](https://bugcrowd.com/list-of-bug-bounty-programs/) that
+you can explore. Please use them to model your own!
