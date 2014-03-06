@@ -4,10 +4,10 @@
 
 Last week I discovered a security vulnerability in a **well-known commericial
 EHR product** that I'll pseudonomously call "Friendly Web EHR". I reported it
-to the vendor; they fixed the problem; and this is the write-up. But it's not
-just a cautionary tale: the vulnerability was a result, in part, of the
+to the vendor; they fixed the problem; and this is the write-up. But the story
+may not be finished: the vulnerability was a result, in part, of the
 vendor's reliance on an XML Transform or "stylesheet" provided by HL7 as an
-accompaniement to the C-CDA specification.
+accompaniement to the C-CDA specification, which means...
 
 ## Other EHR vendors: you might be affected too!
 
