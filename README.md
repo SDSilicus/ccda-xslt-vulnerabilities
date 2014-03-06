@@ -7,7 +7,7 @@ EHR product** that I'll pseudonomously call "Friendly Web EHR". I reported it
 to the vendor; they fixed the problem; and this is the write-up. But the story
 may not be finished: the vulnerability was a result, in part, of the
 vendor's reliance on an XML Transform or "stylesheet" provided by HL7 as an
-accompaniement to the C-CDA specification, which means...
+accompaniment to the C-CDA specification, which means...
 
 ## Other EHR vendors may be affected too
 
@@ -16,7 +16,7 @@ displays C-CDA documents as HTML, please have somone from your security team
 review this post-mortem, understand the risks, and ensure that the proposed
 fixes are in place.
 
-## The Vulnerabiliy: view a document, experience a data breach
+## The Vulnerability: view a document, experience a data breach
 
 The short story is: Friendly Web EHR's C-CDA viewer was vulnerable to
 cross-site scripting attacks. If a clinical user merely *viewed* a malicous
@@ -154,7 +154,7 @@ anywhere within the document will cause our code to run. That's more like it!
 You may want to [check out these tricks in
 action](https://chb.github.io/chb/ccda-xslt-vulnerabilities).
 
-## How do protect yourself: a defense-in-depth approach
+## How to protect yourself: a defense-in-depth approach
 
 There are many, many ways to defend against an attack like this. In one sense,
 it's not at all hard. But mistakes can be subtle, so it's extremely valuable to
