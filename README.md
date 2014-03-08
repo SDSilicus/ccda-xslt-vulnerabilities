@@ -100,7 +100,31 @@ the template above, we can cause the browser to leak the current page URL to
 </entry>
 ```
 
-#### Executing arbitrary JavaScript from a C-CDA document
+#### Executing arbitrary JavaScript from a C-CDA document 
+
+##### Via `iframe` in nonXMLBody
+One interesting opportunity for injection attacks is the default handling of a `nonXMLBody` CDA. 
+
+```
+<xsl:template match='n1:component/n1:nonXMLBody'>
+  <xsl:choose>
+  <!-- if there is a reference, use that in an IFRAME -->
+  <xsl:when test='n1:text/n1:reference'>
+  <IFRAME name='nonXMLBody' id='nonXMLBody' WIDTH='80%' HEIGHT='600' src='{n1:text/n1:reference/@value}' />
+</xsl:when>
+```
+
+Yikes! This means we can get javascript to execute if we can supply it in a reference like:
+
+```
+<nonXMLBody>
+  <text>
+    <reference value="javascript:alert(window.parent.location);"/>
+  </text>
+</nonXMLBody>
+```
+
+##### Via rogue attributes
 
 Where else can we look for weaknesses? Well, it would be "nice" to find a way
 to get a `script` tag inserted in the rendered document, but the XSLT is pretty
@@ -193,7 +217,9 @@ Schemas validity error:
 
 That's certainly a good start -- and if Friendly Web EHR had done something
 like this before passing a C-CDA document into an XSL transform process, they
-wouldn't have been vulnerable to attack #2 as described above.
+wouldn't have been vulnerable to the "rogue attributes" attack described above.
+
+But validation alone won't ensure safety... you also need to
 
 
 ### Prevent documents from running code or loading external images
