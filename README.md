@@ -1,4 +1,4 @@
-### TL;DR: If you're using XSLT "stylesheets" to render C-CDAs from external sources, it's essential that you understand the security considerations described below, or you may be at risk of data breach.
+### TL;DR: If you're using XSLT "stylesheets" to render C-CDAs from external sources, it's essential that you understand the security considerations described below, or you may risk data breach.
 
 ## Vulnerabilty report
 
