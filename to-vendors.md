@@ -1,6 +1,6 @@
 ﻿### Dear EHR Vendor,
 
-I'm a medical informatics researcher at Boston Children's Hospital, and I'm
+As a medical informatics researcher at Boston Children's Hospital, I'm
 writing to share some security considerations pertinent to any EHR that
 displays Consolidated CDA documents for Meaningful Use (especially in a Web
 browser environment). I would appreciate if you could ensure that the message
@@ -18,8 +18,8 @@ Harvard Medical School / Boston Children's Hospital
 
 I'm writing to report a *potential security vulnerability* in the display of
 Consolidated CDA documents. To be clear, I haven't tested whether your EHR
-products are vulnerable to the issues below, but I have found that they
-*affect some production EHR systems*, and I wanted to share this report with
+products are vulnerable to the issues below, but I have found that *these vulnerabilities 
+affect some production EHR systems*, so I wanted to share this report with
 Web-based EHR vendors privately before I describe it in public on the [SMART Platforms
 blog](http://smartplatforms.org).
 
@@ -98,7 +98,7 @@ following permissive "copy all" can be dangerous:
 ```
 
 What this says is: "when you find a `table` in the C-CDA document, just copy
-all of its XML attributes right into the rendered document. An attacker can use
+all of its XML attributes right into the rendered document." An attacker can use
 this to inject JavaScript in the resulting document. For example, an attacker
 could steal cookies and application state, and them back to an external server.
 
