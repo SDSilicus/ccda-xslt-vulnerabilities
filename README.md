@@ -295,4 +295,4 @@ These programs sometimes award fame, or cash -- but they key point is that they 
 a single "right way" to report issues.  Here's a [whole list of programs](https://bugcrowd.com/list-of-bug-bounty-programs/) that
 you can explore.
 
-Security in EHRs is a sensitive topic, and rightfully so. But a culture of transparency and recognition is among the best defenses. I urge every EHR vendor to look at reporting programs described above, and please use them to model your own!
+Security in EHRs is a sensitive topic, and rightfully so. But a culture of transparency and recognition is among the best protections. I urge every EHR vendor to look at reporting programs described above, and please use them to model your own!
