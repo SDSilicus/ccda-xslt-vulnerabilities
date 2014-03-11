@@ -9,7 +9,9 @@ below reaches someone on your security team.
 Best,
 
   Josh Mandel, MD
+
   Lead Architect, SMART Platforms
+
   Harvard Medical School / Boston Children's Hospital
 
 ---
@@ -33,13 +35,16 @@ could be vulnerable to a data breach.
 **I would appreciate if you could reply to me** so I can track the dissemination of
 this notice. My plan is to write a public blog post that would be published on
 3/21/2014. If you discover that your system is vulnerable and you need more
-time to repair it, please let me know that, and I can delay publication if necessary.
+time to repair it, please let me know prior to 3/20, and I can delay publication if necessary.
 
 Best,
 
   Josh Mandel, MD
+
   Lead Architect, SMART Platforms
+
   Harvard Medical School / Boston Children's Hospital
+
 
 
 
