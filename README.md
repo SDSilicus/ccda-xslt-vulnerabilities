@@ -29,7 +29,7 @@ then proceed to download data about any patient in the practice.
 
 #### This kind of thing can get bad *fast*
 A clever attacker might chain this kind of vulnerability into a **viral vector** 
-that could spread across practices: by manipulating a vendor's internal API
+that could spread across practices. By manipulating a vendor's internal API
 the attacker might use stolen session tokens to:
 
 1. Fetch all contacts from a user's address book
