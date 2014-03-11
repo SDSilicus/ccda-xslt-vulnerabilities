@@ -28,10 +28,9 @@ leak full EHR priviliges to a remote third party attacker. The attacker could
 then proceed to download data about any patient in the practice.
 
 #### This kind of thing can get bad *fast*
-I didn't see this specific problem with Friendly Web EHR, but a clever attacker
-might chain this kind of vulnerability into a **viral vector** that could
-spread across practices: by manipulating a vendor's internal API, the attacker
-might use stolen session tokens to:
+A clever attacker might chain this kind of vulnerability into a **viral vector** 
+that could spread across practices: by manipulating a vendor's internal API
+the attacker might use stolen session tokens to:
 
 1. Fetch all contacts from a user's address book
 2. Spam all contacts with a referral note or Direct message that included an infected C-CDA document 
