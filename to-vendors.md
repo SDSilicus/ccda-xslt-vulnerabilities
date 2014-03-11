@@ -16,16 +16,15 @@ Best,
 
 ### Dear Security Team,
 
-I'm writing to report a *potential security vulnerability* in your display of
-Consolidated CDA documents. To be clear, I haven't confirmed whether your EHR
+I'm writing to report a *potential security vulnerability* in the display of
+Consolidated CDA documents. To be clear, I haven't tested whether your EHR
 products are vulnerable to the issues below, but I have found that they
 *affect some production EHR systems*, and I wanted to share this report with Web-based EHR vendors privately before I describe it in public on the [SMART Platforms
 blog](http://smartplatforms.org).
 
 In short, the concern has to do with the use of XSLT "stylesheets" to
 display externally-supplied C-CDA documents in the EHR. To be specific:
-**the ready-to-go stylesheet provided by HL7 (which I've seen broadly adopted by many EHR vendors) were not designed with security in mind -- and this can 
-leave EHRs vulnerable to attacks by maliciously-composed documents.**
+**the CDA.xsl stylesheet provided by HL7 (which I've seen broadly adopted by many EHR vendors) can  leave EHRs vulnerable to attacks by maliciously-composed documents.**
 
 The "TL;DR" version is: If you're using XSLT stylesheets to render C-CDAs in
 your EHR, make sure you understand the security implications. Otherwise you
