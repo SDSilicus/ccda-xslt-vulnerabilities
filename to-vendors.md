@@ -53,7 +53,7 @@ visible, leveragable target.
 My analysis revealed *at least three ways to craft a malicious C-CDA*. 
 The first two vulnerabilities allow the execution of arbitrary JavaScript
 code within the C-CDA viewer. For example, **an attacker could steal browser
-cookies and application state, and them back to an external server**. The third
+cookies and application state, and post them back to an external server**. The third
 vulnerability allows the C-CDA viewer URL to leak to an external server. 
 
 #### 1. Unsanitized `nonXMLBody/text/reference/@value` can execute JavaScript
@@ -118,7 +118,7 @@ A source C-CDA document would supply a table like:
 ... and the XSLT-output HTML rendering would contain the source `table` element verbatim.
 
 
-#### Unsanitized `observationMedia/value/reference/@value` can leak state via HTTP `Referer` headers
+#### 3. Unsanitized `observationMedia/value/reference/@value` can leak state via HTTP `Referer` headers
 
 Searching CDA.xsl for the term `img`, reveals two places where image tags are
 emitted.  Both occur within the `renderMultiMedia` template definition:
