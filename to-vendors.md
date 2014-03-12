@@ -32,7 +32,7 @@ your EHR, make sure you understand the security implications. Otherwise you
 could be vulnerable to a data breach.
 
 **I would appreciate if you could reply to me** so I can track the dissemination of
-this notice. My plan is to write a public blog post that would be published on
+this notice. My plan is publish a public blog post on
 3/21/2014. If you discover that your system is vulnerable and you need more
 time to repair it, please let me know prior to 3/20, and I can delay publication if necessary.
 
