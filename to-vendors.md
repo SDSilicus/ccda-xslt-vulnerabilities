@@ -25,7 +25,7 @@ blog](http://smartplatforms.org).
 
 In short, the concern has to do with the use of XSLT "stylesheets" to
 display externally-supplied C-CDA documents in the EHR. To be specific:
-**the CDA.xsl stylesheet provided by HL7 (which I've seen broadly adopted by many EHR vendors) can  leave EHRs vulnerable to attacks by maliciously-composed documents.**
+**the CDA.xsl stylesheet provided by HL7 (which has been broadly adopted by many EHR vendors) can  leave EHRs vulnerable to attacks by maliciously-composed documents.**
 
 The "TL;DR" version is: If you're using XSLT stylesheets to render C-CDAs in
 your EHR, make sure you understand the security implications. Otherwise you
@@ -68,13 +68,13 @@ One opportunity for injection attacks is the default handling of a `nonXMLBody` 
 </xsl:when>
 ```
 
-This means an attacker can execute arbitrary JavaScript by supplying a reference like:
+This means an attacker can execute arsbitrary JavaScript by supplying a reference like:
 
 
 ```
 <nonXMLBody>
   <text>
-    <reference value="javascript:alert(window.parent.location);"/>
+    <reference value="javascript:alert(parent.document.cookie);"/>
   </text>
 </nonXMLBody>
 ```
@@ -82,7 +82,7 @@ This means an attacker can execute arbitrary JavaScript by supplying a reference
 The XSLT-output HTML rendering would include the following dangerous snippet:
 
 ```
-  <iframe src="javascript:alert(window.parent.location);"></iframe>
+  <iframe src="javascript:alert(parent.document.cookie);"></iframe>
 ```
 
 #### 2. Unsanitized `table/@onmouseover` can execute JavaScript
@@ -104,13 +104,13 @@ following permissive "copy all" can be dangerous:
 What this says is: "when you find a `table` in the C-CDA document, just copy
 all of its XML attributes right into the rendered document." An attacker can use
 this to inject JavaScript in the resulting document. For example, an attacker
-could steal cookies and application state, and them back to an external server.
+could steal cookies and application state, and post them back to an external server.
 
 A source C-CDA document would supply a table like:
 
 ```
 <table 
-   onmouseover="alert(window.parent.location);"
+   onmouseover="alert(document.cookie);"
    style="height: 100%; width: 100%; position: fixed; left: 0px; top: 0px;">
 </table>
 ```
