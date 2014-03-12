@@ -16,7 +16,7 @@ Harvard Medical School / Boston Children's Hospital
 
 ### Dear Security Team,
 
-I'm writing to report a *potential security vulnerability* in the display of
+I'm writing to report *potential security vulnerabilities* in the display of
 Consolidated CDA documents. To be clear, I haven't tested whether your EHR
 products are vulnerable to the issues below, but I have found that *these vulnerabilities 
 affect some production EHR systems*, so I wanted to share this report with
@@ -45,13 +45,16 @@ Best,
 
 ### Three fundamental attacks
 
-Many vendors appear to be using (slightly modified) versions of the
+Many vendors appear to be using (slightly tweaked versions of) the
 [CDA.xsl](https://github.com/chb/sample_ccdas/blob/master/CDA.xsl) that comes
 with HL7's C-CDA release. This provides potential attackers with a highly
 visible, leveragable target.
 
-My analysis revealed at least three ways to craft a malicious C-CDA. I'll describe them in detail...
-
+My analysis revealed *at least three ways to craft a malicious C-CDA*. 
+The first two vulnerabilities allow the execution of arbitrary JavaScript
+code within the C-CDA viewer. For example, **an attacker could steal browser
+cookies and application state, and them back to an external server**. The third
+vulnerability allows the C-CDA viewer URL to leak to an external server. 
 
 #### 1. Unsanitized `nonXMLBody/text/reference/@value` can execute JavaScript
 One opportunity for injection attacks is the default handling of a `nonXMLBody` CDA. 
@@ -65,7 +68,8 @@ One opportunity for injection attacks is the default handling of a `nonXMLBody` 
 </xsl:when>
 ```
 
-This means we can get javascript to execute if we can supply it in a reference like:
+This means an attacker can execute arbitrary JavaScript by supplying a reference like:
+
 
 ```
 <nonXMLBody>
