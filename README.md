@@ -1,28 +1,21 @@
-## Security vulnerabilities in C-CDA display: a case study
+## Case study: security vulnerabilities in C-CDA display
 
-## For background
-
-See my [smartplatforms.org blog
+For background, see my [smartplatforms.org blog
 post](http://smartplatforms.org/2014/04/security-vulnerabilities-in-ccda-display/)
-describing the details of three security vulnerabilities in C-CDA Display using
-CDA.xsl in HL7's CDA.xsl.
-
-## The story
-
+describing the details of three security vulnerabilities in C-CDA Display using HL7's CDA.xsl.
 
 Last month I discovered a set of security vulnerabilities in a **well-known
-commericial EHR product** that I'll pseudonomously call "Friendly Web EHR".
+commercial EHR product** that I'll pseudonymously call "Friendly Web EHR".
 Here's the story...
 
 ### Discovery
 
 I was poking around my account in Friendly Web EHR, examining MU2 features like
-C-CDA display and Direct messaging. I use the "file upload" feature to upload
-some sample documents from SMART's [Sample C-CDA Repository on
-GitHub](https://github.com/chb/sample_ccdas) to see how well they rendered. At
-the time, I was thinking about the user experience. (Specifically, I was
-bemoaning how clunky the standard XSLT-based C-CDA rendering looks.) I was
-curious to see how the C-CDA viewer was embedded into the EHR. Direct DOM
+C-CDA display and Direct messaging. I used "document upload" feature to upload
+some C-CDAs from SMART's [Sample C-CDA Repository](https://github.com/chb/sample_ccdas).
+At the time, I was curious about the user experience. (Specifically, I was
+bemoaning how clunky the standard XSLT-based C-CDA rendering looks.) I wondered
+how the C-CDA viewer was embedded into the EHR. Was it by direct DOM
 insertion? Inline frames? I opened up Chrome Developer Tools to take a look.
 
 It turned out to be an `iframe` pointing to a standalone C-CDA viewer module.
@@ -30,12 +23,12 @@ Interestingly the `src` URL of the iframe included two URL parameters: an
 identifier for the document that I was viewing, and some kind of security
 token. A bit of investigation revealed that this token was identical to my main
 EHR session token: in other words, a full session-equivalent was embedded into
-the `iframe/@src` URL.
+the `iframe/@src` URL!
 
 This was dangerous, because it meant that a malicious document could steal my
 EHR session merely by leaking its own URL to an attacker. This kind of leakage
 occurs by default in modern web browsers, in the form of `Referer` headers:
-every time a typical browser fetchese external resources like an image, it
+every time a typical browser fetches an external resource like an image, it
 includes a header with the URL of the current page.  So if I could merely
 reference an external image in my C-CDA, I'd have an attack vector.
 
@@ -46,9 +39,9 @@ and saw that the
 template allowed the creation of `img` tags with an arbitrary `src` attribute.
 That would be all I needed...
 
-But it occurred to me that a 2274-line XSLT file written in 2008 probably had
+But it occurred to me that a 2274-line XSLT file might have
 other vulnerabilities. I started hunting for loopholes that would allow
-execution of javascript code, and I discovered the [two vulnerabilities I
+execution of JavaScript code, and I discovered [the two XSS vulnerabilities I
 described in my SMART Platforms blog
 post](http://smartplatforms.org/2014/04/security-vulnerabilities-in-ccda-display/).
 
@@ -63,11 +56,11 @@ I decided to try these out against my own account in Friendly Web EHR, and sure 
 > vulnerable C-CDA viewer, I've put together a working [simulation that
 > demonstrates the key
 > issues](http://chb.github.io/ccda-xslt-vulnerabilities/). Don't worry: it's
-> just a demonstration, and perfectly safe to view!
-> [*simulation*](https://chb.github.io/ccda-xslt-vulnerabilities) | 
-> [*source*](https://github.com/chb/ccda-xslt-vulnerabilities)
+> just a demonstration, and perfectly safe to view! See: 
+> **[*simulation*](https://chb.github.io/ccda-xslt-vulnerabilities) | 
+> [*source*](https://github.com/chb/ccda-xslt-vulnerabilities)**
 
-At this point, about 5pm on a Saturday, I reported the discovery by e-mail to a
+At this point, about 5pm on a Saturday, I reported the discovery by e-mailing a
 contact at Friendly Web EHR. I heard back Sunday evening with a request for
 more details. I provided these, including an example document demonstrating the
 vulnerabilities (see the simulation above). They confirmed the vulnerabilities,
@@ -79,7 +72,7 @@ Thursday night (five days after the report) they had a fix in place.
 When I returned to Friendly Web EHR after the initial fix was ready, I realized
 that the EHR actually included two different C-CDA viewers. The one I had
 initially explored was based on HL7's CDA.xsl, but a second viewer offered a
-much more compelling user experience. This second viewer was built directly
+much more compelling user experience. This second viewer was built right
 into the EHR's Direct inbox feature, and could be used to open C-CDA
 attachments to Direct messages.
 
@@ -92,7 +85,7 @@ unscaped markup expression (handlebars syntax: `{{{ unescaped_markup_here
 I set up a [HealthVault](https://www.healthvault.com) account and discovered
 that as a patient, I could send Direct messages to my clinician account in
 Friendly Web EHR. Using this account, I tried sending documents with the
-exploits that I had discovered in my CDA.xsl explorations, but to no avail.
+exploits that I had discovered previously, but to no avail.
 
 And then on a hunch I tried adding a `CDATA` block to a C-CDA narrative text
 element, to create something like:
@@ -119,7 +112,7 @@ This resulted in HTML that was *close* to what I needed, but the opening
 ```
 
 Again on a hunch, I tweaked my payload by duplicating the opening `<script>`
-tag -- and sure enough, I was able to inject JavaScript into the EHR session!
+tag -- and sure enough, I was able to inject JavaScript into the EHR session.
 
 ## Serious danger: potential for viral spread
 
@@ -135,10 +128,10 @@ steps like:
 2. When viewed, the document hijacks a user's EHR session and issues a set of
    calls to Friendly Web EHR's internal (undocumented) API.
 
-3. API call to fetch a clinician's contacts from her address book.
+3. Issue an API call to fetch a clinician's contacts from her address book.
 
-4. API call to send a new Direct message to each contact, containing a new copy
-   of the malicious document.  (To make this realisitic, it would be designed
+4. For each contact, issue an API call to send a new Direct message containing a new copy
+   of the malicious document.  (To make this realistic, it would be designed
    to look like a referral note with patient data attached.)
 
 This sequence of steps could allow an attacker to harvest large quantities of
