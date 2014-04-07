@@ -73,7 +73,7 @@ retrospect, I may have missed some channels that did not turn up via Google sear
 undeliverable.**
 
 In ten cases where I was not able to reach a vendor by any of the three
-channels above, I sent a notification directly through a Web-based contact for
+channels above, I sent a notification directly through a Web-based contact form
 on the vendor web site. This worked in all but one case, where  I received the
 following message:
 
