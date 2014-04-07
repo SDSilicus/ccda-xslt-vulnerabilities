@@ -79,7 +79,7 @@ following message:
 
 > "We are sorry, but the system thinks your message contains unwanted
 > advertising, so it was blocked. If you think it's an error, please go back
-> and retry avoiding words wuch as www, http, and so on."
+> and retry avoiding words such as www, http, and so on."
 
 ## < 10% response rate
 
