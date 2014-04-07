@@ -50,8 +50,7 @@ vast.  With advice from friends and colleagues, I decided to reach out directly
 to the set of Web-based EHR vendors in the US, because those were the systems I
 thought were most likely to be affected. In retrospect, a still-wider circle
 including international vendors and non-vendor health IT systems may have been
-better -- but sharing a "private" warning with too large a group becomes impractical. *And becuase patient data were at stake, I believed that responsible
-disclosure meant getting the word out in a timely way.*
+better -- but sharing a "private" warning with too large a group becomes impractical. *Because patient data were at stake and I couldn't tell for sure which systems might be affected, I believed that responsible disclosure argued for getting the word out in a timely fashion.*
 
 As a practical matter, I downloaded [Melissa McCormack's list of Web-based
 EHRs](http://www.softwareadvice.com/medical/web-based-emr-software-comparison/),
