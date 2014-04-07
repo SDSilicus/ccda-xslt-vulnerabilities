@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+      Friendly Web EHR: Patient John Smith
+    </title>
+    <link href="aux/bootstrap.min.css" rel="stylesheet">
+
+    <link href="aux/styles.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#"><b>Friendly Web EHR</b>: <i>Patient John Smith (MRN 1234)</i></a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li>
+            <a href="#">Encounters</a>
+            </li>
+            <li>
+            <a href="#">Meds</a>
+            </li>
+            <li>
+            <a href="#">Problems</a>
+            </li>
+            <li class="active">
+            <a href="#">C-CDA Documents</a>
+            </li>
+          </ul>
+        </div>
+        <!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+      <h1>
+        <b>Latest C-CDA</b>
+        for John Smith
+      </h1>
+      <div >
+        <h5 id="iframeurl">
+          &lt;iframe seamless="" style="width: 100%; height: 500px;" src="patients/john-smith/ccda/rendered?secret_token=123abc"&gt;
+        </h5>
+
+        <div class="tab-pane active" id="result_rendered">
+          <iframe seamless="" style="width: 100%; height: 400px;" src="patients/john-smith/ccda/rendered?secret_token=123abc"></iframe>
+        </div>
+
+        <div class="alert alert-info"> <b>Vulnerability #1: Leaking Referer
+            headers</b> This C-CDA includes a reference to an external image. The
+          rendered HTML view includes an <code>img</code> tag that will point to
+          an external host (<code>https://hack.me</code>). This can be dangerous
+          because browsers will include a "Referer" header on each image load
+          request, which includes the full URL of the current page. If there's
+          secret state embedded in the current page URL, <code>hack.me</code>
+          will learn it. In the example above, the external site learns the value
+          of <code>secret_token</code> each time an image loads.  </div>
+
+
+        <div class="alert alert-info"> <b>Vulnerability #2: Cross-site
+            scripting</b> This C-CDA includes malicious <code>style</code> and
+          <code>onmouseover</code> attributes (in violation of the CDA
+          specification!) that lead to dangerous rendered HTML. The rendered HTML includes
+          a hidden full-screen table that will run arbitrary JavaScript code any time the mouse
+          moves over the document. Such code has access to all state assocaited with the page origin
+          used inside the <code>iframe</code>. This includes:
+          <ul>
+            <li> Page URL</li>
+            <li> Cookies associated with the domain</li>
+            <li> <code>localStorage</code> data associated wtih the domain</li>
+            <li> ... and if the <code>iframe</code> shares its domain with the parent window, it has full access to all application state via <code>window.parent</code>
+          </ul>
+
+        </div>
+
+        <h3>Source files on GitHub & smartplatforms.org</h3>
+          <ul>
+            <li><a href="https://github.com/chb/ccda-xslt-vulnerabilities">Source for this demo + input XML File + rendered HTML</a>
+            <li><a href="https://github.com/chb/sample_ccdas/blob/master/CDA.xsl">CDA.xsl transform</a>
+            <li><a href="http://smartplatforms.org/2014/04/case-study-security-vulnerabilities-in-ccda">Write-up describing vulnerabilities</a>
+          </ul>
+      </div>
+      <script src="aux/jquery.min.js" >
+      </script>
+    </body>
+  </html>
