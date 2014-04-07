@@ -1,9 +1,9 @@
-# Distrubing state of EHR Security Vulnerability Reporting
+# Disturbing state of EHR Security Vulnerability Reporting
 
 Last week I [reported on a set of security vulnerabilities](http://smartplatforms.org/2014/04/security-vulnerabilities-in-ccda-display/) that affected multiple EHR vendors and other Health IT systems.
 
-I initially discovered the vulnerability in one specific Web-based EHR system
-and [reported it directly to that vendor right away](http://smartplatforms.org/2014/04/case-study-security-vulnerabilities-in-ccda).
+I initially discovered the vulnerability in a single Web-based EHR system
+and [successfully reported it directly to that vendor](http://smartplatforms.org/2014/04/case-study-security-vulnerabilities-in-ccda).
 
 *But my subsequent journey into the world of EHR vulnerability reporting left
 me deeply concerned that our EHR vendors do not have mature reporting systems
@@ -13,10 +13,10 @@ theft, blackmail, and ransom. It's time for EHR vendors to take a page from the
 playbook of consumer tech companies by instituting the same kinds of security
 vulnerability reporting programs that are ubiquitous on the consumer Web.*
 
-## Take-home message: EHR Vendors must address security reporting
+## HL7 and EHR Vendors must address security reporting
 
-I'll lead with the key message here, and provide supporting evidence below: EHR
-vendors need to institute security vulnerability reporting programs!
+I'll lead with the key message here, and provide supporting evidence below:
+HL7 and EHR vendors need to institute security vulnerability reporting programs!
 
 In any complex system, bugs -- including security vulnerabilities -- are a fact
 of life.  But an important part of being prepared is having a well-defined
@@ -27,7 +27,12 @@ and report what they find. This could take the form of:
  * Well-defined vulnerability reporting page like [Twitter's](https://support.twitter.com/forms/security)
 
 These programs sometimes award fame, or cash -- but they key point is that they
-provide a single "right way" to report issues.  Here's a [whole list of programs](https://bugcrowd.com/list-of-bug-bounty-programs/) that could be used as models.
+provide a **single "right way" to report** issues, and the best programs **publicize all finding as a matter of course**, so the community can grow and learn.
+
+Here's a [whole list of programs](https://bugcrowd.com/list-of-bug-bounty-programs/) that could be used as models.
+
+What follows is a summary of my experience attempting to engage with HL7 and EHR vendors in a responsible disclosure process.
+
 
 ## No official reporting channels
 
