@@ -43,8 +43,8 @@ those products could be vulnerable. I first contacted John Moehrke, a security
 co-chair for HL7, but he and his colleagues advised me that "that there really
 is no private channel way to communicate with vendors in HL7".
 
-It was not clear how best to proceed. I wanted to notify the public, but before
-that I wanted to warn the developers of affected systems. The problem was that
+It was not clear how best to proceed. I wanted to notify the public, but first
+I wanted to warn the developers of affected systems. The problem was that
 I didn't know who those developers were, and the overall potential pool was
 vast.  With advice from friends and colleagues, I decided to reach out directly
 to the set of Web-based EHR vendors in the US, because those were the systems I
