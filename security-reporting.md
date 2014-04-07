@@ -23,7 +23,7 @@ of life.  But an important part of being prepared is having a well-defined
 channel for security researchers, concerned citizens, and others to reach out
 and report what they find. This could take the form of:
 
- * Bug Bounty or "Whitehat" program like [Facebook's](https://www.facebook.com/whitehat)
+ * Bug Bounty or "Whitehat" program like [Github's](https://bounty.github.com/) or [Facebook's](https://www.facebook.com/whitehat)
  * Well-defined vulnerability reporting page like [Twitter's](https://support.twitter.com/forms/security)
 
 These programs sometimes award fame, or cash -- but they key point is that they
@@ -39,7 +39,7 @@ What follows is a summary of my experience attempting to engage with HL7 and EHR
 The vulnerability I discovered was unusual in that it stemmed from source code
 provided by HL7, the international health standards organization. This code was
 directly incorporated into an unknown number of health IT products, and many of
-those products would be vulnerable. I first contacted John Moehrke, a security
+those products could be vulnerable. I first contacted John Moehrke, a security
 co-chair for HL7, but he and his colleagues advised me that "that there really
 is no private channel way to communicate with vendors in HL7".
 
